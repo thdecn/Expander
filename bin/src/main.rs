@@ -6,6 +6,7 @@ use std::{
 
 use circuit::Circuit;
 use clap::Parser;
+use pprof::ProfilerGuardBuilder;
 use gkr::{
     BN254ConfigMIMC5KZG, BN254ConfigSha2Hyrax, BN254ConfigSha2Raw, GF2ExtConfigSha2Orion,
     GF2ExtConfigSha2Raw, Goldilocksx8ConfigSha2Orion, Goldilocksx8ConfigSha2Raw,
@@ -47,6 +48,10 @@ struct Args {
     /// number of thread
     #[arg(short, long, default_value_t = 1)]
     threads: u64,
+
+    /// Enable profiling to generate flamegraph.svg and trace.json
+    #[arg(long, default_value_t = false)]
+    trace: bool,
 }
 
 fn main() {
@@ -136,6 +141,17 @@ where
         .collect::<Vec<_>>();
 
     let pack_size = <Cfg::FieldConfig as FieldEngine>::get_field_pack_size();
+
+    let profiler_guard = if args.trace {
+        Some(
+            ProfilerGuardBuilder::default()
+                .frequency(1000)
+                .build()
+                .unwrap(),
+        )
+    } else {
+        None
+    };
 
     // load circuit
     let mut circuit_template = match args.circuit.as_str() {
@@ -291,6 +307,17 @@ where
         let throughput =
             total_proof_cnt as f64 / duration.as_secs_f64() * (mpi_config.world_size() as f64);
         println!("{}-bench: throughput: {} hashes/s", i, throughput.round());
+    }
+
+    if let Some(guard) = profiler_guard {
+        if let Ok(report) = guard.report().build() {
+            if let Ok(file) = std::fs::File::create("flamegraph.svg") {
+                let _ = report.flamegraph(file);
+            }
+            if let Ok(file) = std::fs::File::create("trace.json") {
+                let _ = report.chrometracing(file);
+            }
+        }
     }
 }
 
