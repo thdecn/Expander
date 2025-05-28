@@ -136,6 +136,15 @@ RUSTFLAGS="-C target-cpu=native" cargo run --bin expander-exec --release --featu
 
 Note that enabling the `profile` feature will slightly reduce the overall performance so it is recommended not to enable it when benchmarking.
 
+### Flamegraph and Chrome Trace
+You can record a profiling run that generates both a `flamegraph.svg` and a `trace.json` compatible with Chrome Trace by passing the `--trace` flag to the `gkr` binary:
+
+```sh
+RUSTFLAGS="-C target-cpu=native" cargo run --release --bin gkr -- --trace -f fr -t 16
+```
+
+The files will be created in the current directory after the benchmark completes.
+
 ## How to contribute?
 
 Thank you for your interest in contributing to our project! We seek contributors with a robust background in cryptography and programming, aiming to improve and expand the capabilities of our proof generation system.

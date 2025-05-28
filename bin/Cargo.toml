@@ -29,6 +29,7 @@ log.workspace = true
 mpi.workspace = true
 tokio.workspace = true
 warp.workspace = true
+pprof = { version = "0.13", features = ["flamegraph", "protobuf"] }
 
 [[bin]]
 name = "dev-setup"
